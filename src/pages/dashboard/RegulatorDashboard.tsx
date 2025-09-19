@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, AlertTriangle, CheckCircle, BarChart3, Download } from 'lucide-react';
+import { ComplianceReports } from '@/components/ComplianceReports';
+import { RegulatoryAnalytics } from '@/components/RegulatoryAnalytics';
 
 const RegulatorDashboard = () => {
   const { t } = useTranslation();
@@ -47,11 +49,11 @@ const RegulatorDashboard = () => {
           </TabsContent>
 
           <TabsContent value="reports">
-            <Card><CardHeader><CardTitle>Compliance Reports</CardTitle></CardHeader><CardContent><div className="text-center py-12 text-muted-foreground">📊 Compliance reports and export functionality will be displayed here</div></CardContent></Card>
+            <ComplianceReports />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card><CardHeader><CardTitle>Regulatory Analytics</CardTitle></CardHeader><CardContent><div className="text-center py-12 text-muted-foreground">📊 Regulatory analytics and metrics will be displayed here</div></CardContent></Card>
+            <RegulatoryAnalytics />
           </TabsContent>
         </Tabs>
       </div>

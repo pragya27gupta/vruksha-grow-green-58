@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { QrCode, MapPin, Leaf, Award, Clock, User, Truck, CheckCircle } from 'lucide-react';
+import { QrCode, MapPin, Leaf, Award, Clock, User, Truck, CheckCircle, Camera, Download, Share2, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { QRCameraScanner } from '@/components/QRCameraScanner';
+import { ProductMapView } from '@/components/ProductMapView';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface TraceabilityData {
   id: string;
@@ -44,6 +48,9 @@ const ConsumerDashboard = () => {
   const [qrInput, setQrInput] = useState('');
   const [scanResult, setScanResult] = useState<TraceabilityData | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
+  const [showMapView, setShowMapView] = useState(false);
+  const certificateRef = React.useRef<HTMLDivElement>(null);
 
   // Sample traceability data
   const sampleData: TraceabilityData = {
@@ -100,10 +107,109 @@ const ConsumerDashboard = () => {
   };
 
   const handleCameraQR = () => {
-    toast({
-      title: "Camera QR Scanner",
-      description: "Camera QR scanning feature would be implemented here using a QR library"
-    });
+    setShowCameraScanner(true);
+  };
+
+  const handleScanResult = (result: string) => {
+    setQrInput(result);
+    handleQRScan();
+  };
+
+  const downloadCertificate = async () => {
+    if (!scanResult || !certificateRef.current) return;
+
+    try {
+      // Create PDF certificate
+      const canvas = await html2canvas(certificateRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${scanResult.productName}_Certificate.pdf`);
+      
+      toast({
+        title: "Certificate Downloaded",
+        description: `${scanResult.productName} certificate saved successfully`
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Unable to generate certificate PDF",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const viewOnMap = () => {
+    setShowMapView(true);
+  };
+
+  const shareProductStory = async () => {
+    if (!scanResult) return;
+
+    const storyText = `🌱 Product Story: ${scanResult.productName}
+
+🚜 Farmed by: ${scanResult.farmer.name}
+📍 Location: ${scanResult.farmer.location} 
+📅 Harvest: ${new Date(scanResult.harvest.date).toLocaleDateString()}
+
+🏭 Processed by: ${scanResult.processing.processor}
+🔬 Lab tested by: ${scanResult.testing.lab}
+🏷️ Certifications: ${scanResult.certifications.join(', ')}
+
+✨ Traced through VrukshaChain blockchain technology for complete transparency!
+
+#Traceability #OrganicFood #Blockchain #VrukshaChain`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${scanResult.productName} - Product Story`,
+          text: storyText,
+          url: window.location.href
+        });
+        toast({
+          title: "Story Shared",
+          description: "Product story shared successfully!"
+        });
+      } catch (error) {
+        // User cancelled sharing
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(storyText);
+        toast({
+          title: "Story Copied",
+          description: "Product story copied to clipboard!"
+        });
+      } catch (error) {
+        toast({
+          title: "Share Failed",
+          description: "Unable to share product story",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   return (
@@ -132,7 +238,8 @@ const ConsumerDashboard = () => {
                 <div className="text-center py-8">
                   <QrCode className="h-24 w-24 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground mb-4">Point your camera at the QR code</p>
-                  <Button onClick={handleCameraQR} className="w-full">
+                  <Button onClick={handleCameraQR} className="w-full flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
                     Start Camera Scanner
                   </Button>
                 </div>
@@ -166,15 +273,16 @@ const ConsumerDashboard = () => {
           </Card>
 
           {scanResult && (
-            <Card className="border-green-200 bg-green-50/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="h-5 w-5" />
-                  Product Traceability: {scanResult.productName}
-                </CardTitle>
-                <CardDescription>Product ID: {scanResult.id}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <div ref={certificateRef}>
+              <Card className="border-green-200 bg-green-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-800">
+                    <CheckCircle className="h-5 w-5" />
+                    Product Traceability: {scanResult.productName}
+                  </CardTitle>
+                  <CardDescription>Product ID: {scanResult.id}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                 {/* Certifications */}
                 <div>
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
@@ -304,19 +412,38 @@ const ConsumerDashboard = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-6">
-                  <Button variant="outline" size="sm">
+                <div className="flex gap-2 flex-wrap mt-6">
+                  <Button 
+                    onClick={downloadCertificate}
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
                     Download Certificate
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    onClick={viewOnMap}
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4" />
                     View on Map
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    onClick={shareProductStory}
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Share2 className="h-4 w-4" />
                     Share Product Story
                   </Button>
                 </div>
               </CardContent>
             </Card>
+            </div>
           )}
 
           {!scanResult && (
@@ -359,6 +486,21 @@ const ConsumerDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Modals */}
+        <QRCameraScanner
+          open={showCameraScanner}
+          onOpenChange={setShowCameraScanner}
+          onScanResult={handleScanResult}
+        />
+
+        {scanResult && (
+          <ProductMapView
+            open={showMapView}
+            onOpenChange={setShowMapView}
+            productData={scanResult}
+          />
+        )}
       </div>
     </div>
   );
