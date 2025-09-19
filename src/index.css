@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --accent: 120 100% 25%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 89.4%;
+    --input: 0 0% 89.4%;
+    --ring: 0 0% 3.9%;
+
+    /* VrukshaChain Brand Colors */
+    --brand-green: 120 60% 25%;
+    --brand-green-light: 120 45% 35%;
+    --brand-green-dark: 120 70% 15%;
+    --brand-green-glow: 120 55% 45%;
+    --brand-blue: 210 70% 35%;
+    --brand-orange: 25 95% 53%;
+    --brand-red: 0 65% 50%;
+    --brand-yellow: 45 95% 60%;
+    --brand-black: 0 0% 9%;
+    --brand-white: 0 0% 98%;
+    
+    /* Trust & Certification Colors */
+    --trust-verified: 142 76% 36%;
+    --trust-organic: 89 75% 45%;
+    --trust-quality: 197 71% 52%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-black)), hsl(var(--brand-green-dark)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--brand-green-dark)) 100%);
+    --gradient-accent: linear-gradient(90deg, hsl(var(--brand-green)), hsl(var(--brand-green-light)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--trust-verified)), hsl(var(--trust-organic)));
+    --gradient-farm: linear-gradient(45deg, hsl(var(--brand-green-light)), hsl(var(--trust-organic)));
+    --gradient-blockchain: linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--trust-quality)));
+    
+    /* Shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand-green) / 0.2);
+    --shadow-glow: 0 0 40px hsl(var(--brand-green-glow) / 0.3);
+    --shadow-trust: 0 8px 25px -8px hsl(var(--trust-verified) / 0.25);
+    --shadow-card: 0 4px 20px -4px hsl(var(--border) / 0.1);
+    
+    /* Animation & Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 120 100% 25%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 120 100% 25%;
+
+    /* Dark mode adjustments */
+    --brand-green: 120 100% 30%;
+    --brand-green-light: 120 60% 45%;
+    --brand-green-dark: 120 100% 20%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--brand-green-dark)) 100%);
+    --shadow-glow: 0 0 40px hsl(var(--brand-green) / 0.4);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Ensure proper spacing and prevent overlaps */
+  .page-container {
+    @apply min-h-screen p-4 md:p-6;
+  }
+  
+  .card-spacing {
+    @apply space-y-6;
+  }
+  
+  .dashboard-header {
+    @apply mb-6 md:mb-8;
+  }
+  
+  .dashboard-content {
+    @apply max-w-7xl mx-auto space-y-6;
+  }
+}
