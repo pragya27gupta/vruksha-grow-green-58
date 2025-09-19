@@ -21,6 +21,9 @@ import {
   Tags
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { TraceabilityModal } from '@/components/TraceabilityModal';
+import { QRLabelGenerator } from '@/components/QRLabelGenerator';
+import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 
 interface VerifiedBatch {
   id: string;
@@ -48,6 +51,18 @@ interface ProductBatch {
 
 const ManufacturerDashboard = () => {
   const { t } = useTranslation();
+  
+  // Modal states
+  const [traceabilityModal, setTraceabilityModal] = useState({
+    open: false,
+    batchId: '',
+    productName: ''
+  });
+  
+  const [qrModal, setQrModal] = useState({
+    open: false,
+    product: null as ProductBatch | null
+  });
   
   const [verifiedBatches] = useState<VerifiedBatch[]>([
     {
@@ -164,10 +179,37 @@ const ManufacturerDashboard = () => {
     }
   };
 
-  const generateQRLabel = (product: ProductBatch) => {
+  const openTraceabilityModal = (batchId: string, productName?: string) => {
+    setTraceabilityModal({
+      open: true,
+      batchId,
+      productName: productName || ''
+    });
+  };
+
+  const openQRModal = (product: ProductBatch) => {
+    setQrModal({
+      open: true,
+      product
+    });
+  };
+
+  const useInProduct = (batchId: string) => {
+    // Switch to create product tab and pre-select the batch
+    setProductForm({
+      ...productForm,
+      selectedBatches: [batchId]
+    });
+    
+    // Switch to create product tab
+    const createProductTab = document.querySelector('[value="create-product"]') as HTMLElement;
+    if (createProductTab) {
+      createProductTab.click();
+    }
+
     toast({
-      title: "QR Label Generated",
-      description: `QR label for ${product.qrCode} is ready for download/print`
+      title: "Batch Selected",
+      description: `Batch ${batchId} has been selected for product creation`
     });
   };
 
@@ -255,10 +297,18 @@ const ManufacturerDashboard = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openTraceabilityModal(batch.id)}
+                        >
                           View Full Traceability
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => useInProduct(batch.id)}
+                        >
                           Use in Product
                         </Button>
                       </div>
@@ -404,25 +454,21 @@ const ManufacturerDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => generateQRLabel(product)}
+                          onClick={() => openQRModal(product)}
                           className="flex items-center gap-2"
                         >
                           <QrCode className="h-4 w-4" />
                           {t('generateQRCode')}
                         </Button>
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
-                          <Download className="h-4 w-4" />
-                          Download Label
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
-                          <Printer className="h-4 w-4" />
-                          Print Label
-                        </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openTraceabilityModal(product.id, product.productName)}
+                        >
                           View Traceability
                         </Button>
                       </div>
@@ -434,50 +480,25 @@ const ManufacturerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <div className="grid gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Product Batches</CardDescription>
-                    <CardTitle className="text-3xl">24</CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>QR Codes Generated</CardDescription>
-                    <CardTitle className="text-3xl">24,000</CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Avg Quality Score</CardDescription>
-                    <CardTitle className="text-3xl">97.8%</CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Consumer Scans</CardDescription>
-                    <CardTitle className="text-3xl">1,847</CardTitle>
-                  </CardHeader>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Production Overview</CardTitle>
-                  <CardDescription>
-                    Manufacturing trends and quality metrics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    📊 Production analytics and quality trends will be displayed here
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <ProductionAnalytics />
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <TraceabilityModal
+          open={traceabilityModal.open}
+          onOpenChange={(open) => setTraceabilityModal({ ...traceabilityModal, open })}
+          batchId={traceabilityModal.batchId}
+          productName={traceabilityModal.productName}
+        />
+
+        {qrModal.product && (
+          <QRLabelGenerator
+            open={qrModal.open}
+            onOpenChange={(open) => setQrModal({ ...qrModal, open })}
+            product={qrModal.product}
+          />
+        )}
       </div>
     </div>
   );
