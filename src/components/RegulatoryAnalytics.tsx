@@ -72,6 +72,8 @@ const severityTrends = [
 ];
 
 export const RegulatoryAnalytics: React.FC = () => {
+  console.log('RegulatoryAnalytics component rendered');
+  
   return (
     <div className="space-y-6">
       {/* Key Performance Indicators */}

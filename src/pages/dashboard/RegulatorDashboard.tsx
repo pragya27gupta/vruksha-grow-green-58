@@ -11,6 +11,8 @@ import { RegulatoryAnalytics } from '@/components/RegulatoryAnalytics';
 const RegulatorDashboard = () => {
   const { t } = useTranslation();
 
+  console.log('RegulatorDashboard component rendered');
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">

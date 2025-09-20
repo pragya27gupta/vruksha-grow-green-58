@@ -97,6 +97,8 @@ const mockReports: ComplianceReport[] = [
 export const ComplianceReports: React.FC = () => {
   const [reports, setReports] = useState<ComplianceReport[]>(mockReports);
   const [filteredReports, setFilteredReports] = useState<ComplianceReport[]>(mockReports);
+  
+  console.log('ComplianceReports component rendered, reports count:', reports.length);
   const [filters, setFilters] = useState({
     search: '',
     type: '',
