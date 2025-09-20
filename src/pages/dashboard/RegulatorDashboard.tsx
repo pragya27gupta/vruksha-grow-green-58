@@ -51,11 +51,17 @@ const RegulatorDashboard = () => {
           </TabsContent>
 
           <TabsContent value="reports">
-            <ComplianceReports />
+            <div className="p-4 border rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Compliance Reports Test</h3>
+              <ComplianceReports />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <RegulatoryAnalytics />
+            <div className="p-4 border rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Analytics Test</h3>
+              <RegulatoryAnalytics />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
