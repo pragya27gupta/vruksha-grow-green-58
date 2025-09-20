@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Phone, CreditCard, CheckCircle } from 'lucide-react';
 import LanguageSelector from '@/components/LanguageSelector';
 import vrukshaLogo from '@/assets/vrukshachain-logo-new.png';
 import authenticFarmer from '@/assets/authentic-farmer.jpg';
@@ -24,6 +25,15 @@ const Login = () => {
     role: '' as UserRole | ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isQuickSignupOpen, setIsQuickSignupOpen] = useState(false);
+  const [quickSignupData, setQuickSignupData] = useState({
+    aadhaar: '',
+    phone: '',
+    name: '',
+    otp: '',
+    step: 1 // 1: details, 2: otp verification, 3: success
+  });
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const roles = [
     { value: 'farmer', label: t('farmer'), icon: '🌱', description: 'Record harvests and track origins' },
@@ -72,6 +82,84 @@ const Login = () => {
     }
   };
 
+  const handleQuickSignup = async () => {
+    if (!quickSignupData.aadhaar || !quickSignupData.phone || !quickSignupData.name) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (quickSignupData.aadhaar.length !== 12) {
+      toast({
+        title: "Error",
+        description: "Aadhaar number must be 12 digits",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (quickSignupData.phone.length !== 10) {
+      toast({
+        title: "Error",
+        description: "Phone number must be 10 digits",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsVerifying(true);
+    // Simulate API call
+    setTimeout(() => {
+      setQuickSignupData(prev => ({ ...prev, step: 2 }));
+      setIsVerifying(false);
+      toast({
+        title: "OTP Sent",
+        description: `Verification code sent to +91 ${quickSignupData.phone}`
+      });
+    }, 2000);
+  };
+
+  const handleOTPVerification = async () => {
+    if (!quickSignupData.otp || quickSignupData.otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsVerifying(true);
+    // Simulate OTP verification
+    setTimeout(() => {
+      setQuickSignupData(prev => ({ ...prev, step: 3 }));
+      setIsVerifying(false);
+      toast({
+        title: "Success",
+        description: "Account created successfully!"
+      });
+      
+      // Auto-close after 2 seconds and redirect to regular signup for role selection
+      setTimeout(() => {
+        setIsQuickSignupOpen(false);
+        navigate('/signup');
+      }, 2000);
+    }, 1500);
+  };
+
+  const resetQuickSignup = () => {
+    setQuickSignupData({
+      aadhaar: '',
+      phone: '',
+      name: '',
+      otp: '',
+      step: 1
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex">
       {/* Left side - Login Form */}
@@ -105,9 +193,137 @@ const Login = () => {
               {t('loginToAccount')}
             </CardDescription>
             <div className="mt-4 p-3 bg-accent/10 rounded-lg">
-              <p className="text-sm text-accent font-medium">
-                🆕 New User? Sign up with Aadhaar/Phone in 2 mins
-              </p>
+              <Dialog open={isQuickSignupOpen} onOpenChange={(open) => {
+                setIsQuickSignupOpen(open);
+                if (!open) resetQuickSignup();
+              }}>
+                <DialogTrigger asChild>
+                  <button className="w-full text-left hover:bg-accent/20 rounded p-1 transition-colors">
+                    <p className="text-sm text-accent font-medium">
+                      🆕 New User? Sign up with Aadhaar/Phone in 2 mins
+                    </p>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      Quick Signup with Aadhaar
+                    </DialogTitle>
+                    <DialogDescription>
+                      {quickSignupData.step === 1 && "Enter your details to get started instantly"}
+                      {quickSignupData.step === 2 && "Enter the OTP sent to your phone"}
+                      {quickSignupData.step === 3 && "Account created successfully!"}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {quickSignupData.step === 1 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          value={quickSignupData.name}
+                          onChange={(e) => setQuickSignupData(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="aadhaar">Aadhaar Number</Label>
+                        <Input
+                          id="aadhaar"
+                          value={quickSignupData.aadhaar}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 12);
+                            setQuickSignupData(prev => ({ ...prev, aadhaar: value }));
+                          }}
+                          placeholder="Enter 12-digit Aadhaar number"
+                          maxLength={12}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
+                            +91
+                          </span>
+                          <Input
+                            id="phone"
+                            value={quickSignupData.phone}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                              setQuickSignupData(prev => ({ ...prev, phone: value }));
+                            }}
+                            placeholder="Enter 10-digit phone number"
+                            maxLength={10}
+                            className="rounded-l-none"
+                          />
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleQuickSignup} 
+                        disabled={isVerifying}
+                        className="w-full"
+                      >
+                        {isVerifying ? "Sending OTP..." : "Send OTP"}
+                      </Button>
+                    </div>
+                  )}
+
+                  {quickSignupData.step === 2 && (
+                    <div className="space-y-4">
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <Phone className="h-8 w-8 mx-auto mb-2 text-accent" />
+                        <p className="text-sm">
+                          OTP sent to +91 {quickSignupData.phone}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="otp">Enter OTP</Label>
+                        <Input
+                          id="otp"
+                          value={quickSignupData.otp}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                            setQuickSignupData(prev => ({ ...prev, otp: value }));
+                          }}
+                          placeholder="Enter 6-digit OTP"
+                          maxLength={6}
+                          className="text-center text-lg tracking-widest"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setQuickSignupData(prev => ({ ...prev, step: 1 }))}
+                          disabled={isVerifying}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          onClick={handleOTPVerification} 
+                          disabled={isVerifying}
+                          className="flex-1"
+                        >
+                          {isVerifying ? "Verifying..." : "Verify OTP"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {quickSignupData.step === 3 && (
+                    <div className="text-center space-y-4">
+                      <div className="p-4">
+                        <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                        <h3 className="text-lg font-semibold mb-2">Account Created!</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Welcome {quickSignupData.name}! Redirecting to complete your profile...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
@@ -188,8 +404,8 @@ const Login = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         <div className="absolute bottom-8 left-8 text-white">
-          <h2 className="text-3xl font-bold mb-2">{t('heroTitle')}</h2>
-          <p className="text-lg opacity-90">{t('heroSubtitle')}</p>
+          <h2 className="text-3xl font-bold mb-2">VrukshaChain</h2>
+          <p className="text-lg opacity-90">Farm-to-Fork Traceability Platform</p>
           <div className="mt-4 flex gap-2">
             <Badge className="bg-white/20 text-white border-white/30">Blockchain Verified</Badge>
             <Badge className="bg-white/20 text-white border-white/30">Fair Trade</Badge>
